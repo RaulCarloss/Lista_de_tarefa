@@ -18,11 +18,11 @@ export default function Home(){
       
       await signInWithEmailAndPassword(auth,email,password)
 
-      .then( () => {
+      .then(() => {
         // navegar para /admin
         navigate('/admin', {replace: true })
       })
-      .catch( () => {
+      .catch(() => {
         console.log("ERRO AO FAZER LOGIN")
       })
 

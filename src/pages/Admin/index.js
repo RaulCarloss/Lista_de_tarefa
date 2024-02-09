@@ -2,17 +2,40 @@ import { useState, useEffect } from 'react'
 import './admin.css'
 import { auth, db } from '../../firebaseConnection'
 import { signOut } from 'firebase/auth'
-import { addDoc, collection } from 'firebase/firestore'
+import { addDoc, collection, onSnapshot, query, orderBy, where } from 'firebase/firestore'
 
 export default function Admin(){
 
     const [tarefaInput, setTarefaInput] = useState('')
     const [user, setUser] = useState({})
+    const [tarefas, setTarefas] = useState([]);
 
-    useEffect( () => {
+    useEffect(() => {
         async function loadTarefas(){
             const userDetail = localStorage.getItem("@detailUser")
             setUser(JSON.parse(userDetail))
+
+            if(userDetail){
+                const data = JSON.parse(userDetail);
+
+                const tarefaRef = collection(db, "tarefas")
+                const q = query(tarefaRef, orderBy("created", "desc"), where("userUid", "==", data?.uid))
+
+                const unsub = onSnapshot(q, (snapshot) => {
+                    let lista = [];
+
+                    snapshot.forEach((doc) => {
+                        lista.push({
+                            id: doc.id,
+                            tarefa: doc.data().tarefa,
+                            userUid: doc.data().userUid
+                        })
+                    })
+
+                    setTarefas(lista);
+                })
+            }
+
         }
 
         loadTarefas();
@@ -31,11 +54,11 @@ export default function Admin(){
             created: new Date(),
             userUid: user?.uid
         })
-        .then( () => {
+        .then(() => {
             console.log("tarefa registrada")
             setTarefaInput('')
         })
-        .catch( (error) => {
+        .catch((error) => {
             console.log("erro ao registra" + error)
         })
 
@@ -53,20 +76,22 @@ export default function Admin(){
                 <textarea 
                     placeholder='Digite sua tarefa...'
                     value={tarefaInput}
-                    onChange={ (e) => setTarefaInput(e.target.value) }
+                    onChange={(e) => setTarefaInput(e.target.value) }
                 />
 
                 <button className='btn-register' type='submit'>Registrar tarefa</button>      
             </form>
 
-            <article className='list'>
-                <p>Estudar JS</p>
+            {tarefas.map((item)=> (
+                <article key={item.id} className='list'>
+                <p>{item.tarefa}</p>
 
                 <div>
                     <button>Editar</button>
                     <button className='btn-delete'>Concluir</button>
                 </div>
             </article>
+            ))}
 
             <button className='btn-logout' onClick={handleLogout}>Sair</button>
 
