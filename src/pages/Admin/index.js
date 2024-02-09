@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import './admin.css'
 import { auth, db } from '../../firebaseConnection'
 import { signOut } from 'firebase/auth'
-import { addDoc, collection, onSnapshot, query, orderBy, where } from 'firebase/firestore'
+import { addDoc, collection, onSnapshot, query, orderBy, where, doc, deleteDoc } from 'firebase/firestore'
 
 export default function Admin(){
 
@@ -68,6 +68,11 @@ export default function Admin(){
         await signOut(auth);
     }
 
+    async function deleteTarefa(id){
+        const docRef = doc(db, "tarefas", id)
+        await deleteDoc(docRef)
+    }
+
     return(
         <div className='admin-container'>
             <h1>Minhas tarefas</h1>
@@ -88,7 +93,7 @@ export default function Admin(){
 
                 <div>
                     <button>Editar</button>
-                    <button className='btn-delete'>Concluir</button>
+                    <button onClick={ () => deleteTarefa(item.id) } className='btn-delete'>Concluir</button>
                 </div>
             </article>
             ))}
